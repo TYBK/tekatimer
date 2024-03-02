@@ -42,6 +42,7 @@
             padding: 10px 20px;
             cursor: pointer;
             font-size: 16px;
+            margin: 5px;
         }
         button:hover {
             background-color: #2f2f2f;
@@ -89,13 +90,13 @@
             max-width: 600px; /* Ensure it does not exceed the parent container's width */
             border-radius: 8px;
         }
-        .close {
+        .close, .close-share-modal {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-        .close:hover,
+        .close:hover, .close-share-modal:hover,
         .close:focus {
             color: black;
             text-decoration: none;
@@ -122,26 +123,24 @@
         /* Style for Share Modal */
         .share-modal {
             display: none;
-            position: fixed; /* Use fixed to overlay the entire viewport */
-            z-index: 10;
+            position: absolute; /* Changed from fixed to absolute */
+            z-index: 2;
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%; /* Adjust if necessary */
+            height: 100%; /* Adjust if necessary */
             background-color: rgba(0,0,0,0.4); /* Semi-transparent background */
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .share-modal-content {
-            background-color: #333;
-            margin: auto; /* Center the modal content */
+            position: relative; /* Ensure modal content is positioned relative to the modal */
+            background-color: #2f3136;
+            margin: 10% auto; /* Adjust margin to center the modal content or align as needed */
             padding: 20px;
-            border-radius: 5px;
-            width: 80%;
-            max-width: 300px; /* Adjust this to control the modal width */
-            box-sizing: border-box;
+            border: 1px solid #888;
+            width: 90%; /* Adjust width as necessary */
+            max-width: 600px; /* Ensure it does not exceed the parent container's width */
+            border-radius: 8px;
         }
         .share-option {
             margin: 10px 0;
@@ -161,6 +160,12 @@
         .share-option a:hover {
             background-color: #2f2f2f;
         }
+
+        .teka-tag {
+            margin-top: 10px;
+            height: 25px;
+            float: left;
+        }
     </style>
     </style>
 </head>
@@ -171,7 +176,7 @@
                 <img src="assets/session_log_timer.png" alt="Session Logs" style="width: 24px; height: 24px;">
             </button>
         </div>
-        <h2>Teka Timer</h2>
+        <h2>TekaTimer</h2>
         <div class="session-title">
             <input type="text" id="session-title" placeholder="Session Title">
         </div>
@@ -196,6 +201,8 @@
         <button id="stop-btn" style="display:none;">Stop</button>
         <button id="clear-logs-btn">Clear Log</button>
         <button id="share-btn">Share</button>
+        <br>
+        <img src="assets/teka-humantools.png" class="teka-tag">
     </div>
 
     <!-- Log Modal -->
