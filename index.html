@@ -18,7 +18,7 @@
             overflow: hidden;
         }
         .pomodoro {
-            position: relative;
+            position: relative; /* Add this line if not already present */
             background-color: #2f3136;
             padding: 20px;
             border-radius: 8px;
@@ -67,24 +67,26 @@
             cursor: pointer;
             font-size: 16px; /* Ensuring font size is 16px or larger */
         }
+
         .modal {
             display: none;
-            position: fixed;
+            position: absolute; /* Changed from fixed to absolute */
             z-index: 2;
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            width: 100%; /* Adjust if necessary */
+            height: 100%; /* Adjust if necessary */
+            background-color: rgba(0,0,0,0.4); /* Semi-transparent background */
         }
+
         .modal-content {
+            position: relative; /* Ensure modal content is positioned relative to the modal */
             background-color: #2f3136;
-            margin: 15% auto;
+            margin: 10% auto; /* Adjust margin to center the modal content or align as needed */
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
+            width: 90%; /* Adjust width as necessary */
+            max-width: 600px; /* Ensure it does not exceed the parent container's width */
             border-radius: 8px;
         }
         .close {
@@ -115,6 +117,51 @@
             right: 10px;
             cursor: pointer;
         }
+
+
+        /* Style for Share Modal */
+        .share-modal {
+            display: none;
+            position: fixed; /* Use fixed to overlay the entire viewport */
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4); /* Semi-transparent background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-modal-content {
+            background-color: #333;
+            margin: auto; /* Center the modal content */
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 300px; /* Adjust this to control the modal width */
+            box-sizing: border-box;
+        }
+        .share-option {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .share-option a {
+            color: #fff;
+            text-decoration: none;
+            background-color: #353535;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+
+        .share-option a:hover {
+            background-color: #2f2f2f;
+        }
+    </style>
     </style>
 </head>
 <body>
@@ -148,10 +195,10 @@
         <button id="start-btn">Start</button>
         <button id="stop-btn" style="display:none;">Stop</button>
         <button id="clear-logs-btn">Clear Log</button>
-        <button id="share-twitter">Share to Twitter</button>
+        <button id="share-btn">Share</button>
     </div>
 
-    <!-- The Modal -->
+    <!-- Log Modal -->
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -160,7 +207,21 @@
             <div>Total Session Time: <span id="total-session-time">0 minutes</span></div>
         </div>
     </div>
-
+    
+        <!-- Share Modal -->
+        <div id="shareModal" class="share-modal" style="display: none;">
+            <div class="share-modal-content">
+            <span class="close-share-modal">&times;</span>
+            <h2>Share Your Session</h2>
+            <div class="share-option">
+                <a href="#" id="share-twitter">Share on Twitter</a>
+            </div>
+            <div class="share-option">
+                <a href="#" id="share-telegram">Share on Telegram</a>
+            </div>
+        </div>
+    </div>
+</div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const timerDisplay = document.getElementById('timer');
@@ -285,7 +346,41 @@
                 updateTotalSessionTime();
             });
 
-            shareTwitterButton.addEventListener('click', shareToTwitter);
+
+        // Modal display control
+        const shareModal = document.getElementById("shareModal");
+            const shareBtn = document.getElementById("share-btn");
+            const closeShareModal = document.querySelector(".close-share-modal"); // Changed to querySelector for consistency
+
+            shareBtn.addEventListener('click', () => {
+                shareModal.style.display = "block";
+            });
+
+            closeShareModal.addEventListener('click', () => {
+                shareModal.style.display = "none";
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == shareModal) {
+                    shareModal.style.display = "none";
+                }
+            });
+                    
+            // Share on Twitter
+            document.getElementById("share-twitter").addEventListener("click", function(event) {
+                event.preventDefault();
+                const tweetText = `I've completed ${document.getElementById('total-session-time').textContent} of deep work with Teka Timer! #DeepWork #Productivity`;
+                const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+                window.open(tweetUrl, '_blank');
+            });
+            
+            // Share on Telegram
+            document.getElementById("share-telegram").addEventListener("click", function(event) {
+                event.preventDefault();
+                const messageText = `I've completed ${document.getElementById('total-session-time').textContent} of deep work with Teka Timer!`;
+                const telegramUrl = `https://telegram.me/share/url?url=${encodeURIComponent(document.location.href)}&text=${encodeURIComponent(messageText)}`;
+                window.open(telegramUrl, '_blank');
+            });
         });
     </script>
 </body>
