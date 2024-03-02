@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teka Timer</title>
+    <style>
+   body {
+            font-family: 'Arial', sans-serif;
+            background-color: #36393f;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        .pomodoro {
+            background-color: #2f3136;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .pomodoro h2, .session-logs h2 {
+            color: #ffffff;
+        }
+        .timer {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #353535;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #353535;
+        }
+        .controls, .session-title {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .time-settings, .sound-settings {
+            display: flex;
+            align-items: center;
+        }
+        label {
+            margin-right: 10px;
+        }
+        select, input[type="text"] {
+            background-color: #40444b;
+            color: white;
+            border: 1px solid #353535;
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .session-logs {
+            color: #ffffff;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-item {
+            background-color: #2f3136;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pomodoro">
+        <h2>Teka Timer</h2>
+        <div class="session-title">
+            <input type="text" id="session-title" placeholder="Session Title">
+        </div>
+        <div class="timer" id="timer">00:00</div>
+        <div class="controls">
+            <div class="time-settings">
+                <label for="time-select">Time:</label>
+                <select id="time-select">
+                    <option value="0">Count Up</option>
+                    <option value="300">5m</option>
+                    <option value="600">10m</option>
+                    <option value="900">15m</option>
+                    <option value="1500">25m</option>
+                </select>
+            </div>
+            <div class="sound-toggle">
+                <label for="sound-toggle">Sound:</label>
+                <input type="checkbox" id="sound-toggle" checked>
+            </div>
+        </div>
+        <button id="start-btn">Start</button>
+        <button id="stop-btn" style="display:none;">Stop</button>
+        <button id="clear-logs-btn">Clear Logs</button>
+        <button id="share-twitter">Share to Twitter</button>
+    </div>
+    <div class="session-logs">
+        <h2>Session Logs</h2>
+        <div>Total Session Time: <span id="total-session-time">0 minutes</span></div>
+        <div id="logs"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const timerDisplay = document.getElementById('timer');
+            const startButton = document.getElementById('start-btn');
+            const stopButton = document.getElementById('stop-btn');
+            const clearLogsButton = document.getElementById('clear-logs-btn');
+            const shareTwitterButton = document.getElementById('share-twitter');
+            const timeSelect = document.getElementById('time-select');
+            const soundToggle = document.getElementById('sound-toggle');
+            const sessionTitleInput = document.getElementById('session-title');
+            const logsContainer = document.getElementById('logs');
+            const totalSessionTimeDisplay = document.getElementById('total-session-time');
+            let countdown;
+            let totalSessionSeconds = 0;
+            let elapsedSeconds = 0;
+            let isCountingUp = false;
+
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            function beep() {
+                if (!soundToggle.checked) return;
+                var oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                oscillator.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            }
+
+            function startTimer(seconds) {
+                clearInterval(countdown);
+                isCountingUp = seconds === 0;
+                elapsedSeconds = 0;
+                updateDisplay(0);
+                stopButton.style.display = isCountingUp ? 'inline-block' : 'none';
+
+                countdown = setInterval(() => {
+                    elapsedSeconds++;
+                    const secondsLeft = isCountingUp ? elapsedSeconds : seconds - elapsedSeconds;
+                    if (!isCountingUp && secondsLeft <= 0) {
+                        clearInterval(countdown);
+                        beep();
+                        logSession(elapsedSeconds);
+                        stopButton.style.display = 'none';
+                        return;
+                    }
+                    updateDisplay(isCountingUp ? elapsedSeconds : secondsLeft);
+                }, 1000);
+            }
+
+            function stopTimer() {
+                clearInterval(countdown);
+                if (isCountingUp && elapsedSeconds > 0) {
+                    beep();
+                    logSession(elapsedSeconds);
+                }
+                stopButton.style.display = 'none';
+                isCountingUp = false;
+            }
+
+            function updateDisplay(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainderSeconds = seconds % 60;
+                const display = `${minutes}:${remainderSeconds < 10 ? '0' : ''}${remainderSeconds}`;
+                timerDisplay.textContent = display;
+            }
+
+            function logSession(duration) {
+                const title = sessionTitleInput.value || "Unnamed Session";
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                const logItem = document.createElement('div');
+                logItem.classList.add('log-item');
+                logItem.textContent = `${title} - ${minutes} minutes and ${seconds} seconds`;
+                logsContainer.appendChild(logItem);
+                sessionTitleInput.value = '';
+                totalSessionSeconds += duration;
+                updateTotalSessionTime();
+            }
+
+            function updateTotalSessionTime() {
+                const totalMinutes = Math.floor(totalSessionSeconds / 60);
+                const totalSeconds = totalSessionSeconds % 60;
+                totalSessionTimeDisplay.textContent = `${totalMinutes} minutes and ${totalSeconds} seconds`;
+            }
+
+            function shareToTwitter() {
+                const totalMinutes = Math.floor(totalSessionSeconds / 60);
+                const totalSeconds = totalSessionSeconds % 60;
+                const tweetText = `I've completed ${totalMinutes} minutes and ${totalSeconds} seconds of deep work with Teka Timer! #DeepWork #Productivity`;
+                const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+                window.open(tweetUrl, '_blank');
+            }
+
+            startButton.addEventListener('click', () => {
+                const seconds = parseInt(timeSelect.value);
+                startTimer(seconds);
+            });
+
+            stopButton.addEventListener('click', stopTimer);
+
+            clearLogsButton.addEventListener('click', () => {
+                logsContainer.innerHTML = '';
+                totalSessionSeconds = 0;
+                updateTotalSessionTime();
+            });
+
+            shareTwitterButton.addEventListener('click', shareToTwitter);
+        });
+    </script>
+</body>
+</html>
